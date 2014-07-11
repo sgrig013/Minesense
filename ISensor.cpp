@@ -3,6 +3,9 @@
 
 using namespace std;
 
+// This is implementation of sensor base class. 
+// Implementation includes generic helper methods 
+// to use in derivred classes. 
 ISensor::ISensor(void)
 {
 }
@@ -11,6 +14,7 @@ ISensor::~ISensor(void)
 {
 }
 
+// Generates string with random numbers
 string ISensor::GetRandomNumericData(int length)
 {
 	double xRan;
@@ -25,6 +29,8 @@ string ISensor::GetRandomNumericData(int length)
 	return ss.str();
 }
 
+// Obtains and returns string with current local time 
+// in user friendly format
 string ISensor::GetLocalTime()
 {
 	char buf[80];

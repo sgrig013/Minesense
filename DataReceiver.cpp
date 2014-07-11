@@ -8,7 +8,11 @@ using namespace constants;
 HANDLE ghSentEvent[NUM_SENSORS];
 HANDLE ghReceivedEvent[NUM_SENSORS];
 HANDLE ghThread;
+DataReceiver* DataReceiver::pReceiver= NULL;
 
+// This is implementation of the server class to wait for notifications from sensors, 
+// receive sensor reading data and save it to a file. 
+// It will send completion event to the sensor once data was processed. 
 DataReceiver::DataReceiver(void)
 {
 	m_nProcessed = 0;
@@ -16,6 +20,14 @@ DataReceiver::DataReceiver(void)
 
 DataReceiver::~DataReceiver(void)
 {
+}
+
+DataReceiver* DataReceiver::GetInstance()
+{
+	if (pReceiver== NULL) {
+		pReceiver = new DataReceiver();
+	}
+	return pReceiver;
 }
 
 // Create event handlers and thread to synch 
@@ -33,10 +45,10 @@ bool DataReceiver::Start()
             NULL);  // unnamed object
 
 		ghReceivedEvent[i] = CreateEvent( 
-			NULL,               // default security attributes
-			FALSE,               // manual-reset event
-			FALSE,              // initial state is nonsignaled
-			NULL);				// no name
+			NULL, 
+			FALSE,
+			FALSE,
+			NULL);
 
         if (ghSentEvent[i] == NULL || ghReceivedEvent[i] == NULL) 
         { 
@@ -70,21 +82,22 @@ void DataReceiver::CloseEvents()
 	}
 }
 
+// This thread will wait for notification from sensors
+// and invoke data receiving procedure
 DWORD ThreadProc(LPVOID lpParam) 
 {
 	DataReceiver* pReceiverClass = (DataReceiver*) lpParam;
     DWORD dwWaitResult;
 
-    //cout << "Thread " << GetCurrentThreadId() << " waiting for send data event." << endl;
-    
+    //cout << "Thread " << GetCurrentThreadId() << " waiting for sent data event." << endl;
 	bool bWait = true;
 	while (bWait)
 	{
 		dwWaitResult = WaitForMultipleObjects( 
-			NUM_SENSORS, // // number of objects in array
+			NUM_SENSORS, // number of objects in array
 			ghSentEvent, // array of objects
 			FALSE,       // wait for any object
-			10000);     // wait 10 seconds in our test. Otherwise use INFINITE for indefinite wait
+			10000);      // wait 10 seconds in our test. Otherwise use INFINITE for indefinite wait
 
 		switch (dwWaitResult) 
 		{
@@ -155,9 +168,7 @@ DWORD ThreadProc(LPVOID lpParam)
 	return 1;
 }
 
-//
-// Connect to the named pipe to receive sensor data 
-//
+// Connect to the named pipe to read/receive sensor data 
 bool DataReceiver::ReceiveData()
 {
 	// Open the named pipe
@@ -175,7 +186,7 @@ bool DataReceiver::ReceiveData()
 		cout << "DataReceiver: Failed to connect to pipe: " << GetLastError() << endl;
         return false;
     }
-     //cout << "DataReceiver Reading data from pipe..." << endl;
+    //cout << "DataReceiver Reading data from pipe..." << endl;
  
     // The read operation will block until there is data to read
     wchar_t buffer[DATA_LENGTH+1];
@@ -198,7 +209,7 @@ bool DataReceiver::ReceiveData()
 	buffer[numBytesRead / sizeof(wchar_t)] = '\0'; // null terminate the string
 	//cout << "DataReceiver Number of bytes read: " << numBytesRead << endl;
 
-	//convert from wide char to char array, then string
+	//convert from wide char to string
 	char ch[DATA_LENGTH];
 	char DefChar = ' ';
 	int ret = WideCharToMultiByte(CP_ACP, 0, buffer, -1, ch, DATA_LENGTH, &DefChar, NULL);
@@ -213,9 +224,7 @@ bool DataReceiver::ReceiveData()
 		//cout << "DataReceiver data: " << m_sRcvData << endl;
 	}
 
-    // Close pipe handle
     CloseHandle(pipe);
-    
 	return true;
 }
 
@@ -283,11 +292,15 @@ bool DataReceiver::SaveData(int sensorIndex)
 	return true;
 }
 
+// Returns number of data receive events processed
 int DataReceiver::NumerOfSensorsProcessed() 
 {
 	return m_nProcessed;
 }
 
+//
+// Following are Helper functions to convert enumeration values to the string
+// 
 string DataReceiver::SensorTypeToString(ISensor::SensorType type)
 {
 	map<ISensor::SensorType, string> types;

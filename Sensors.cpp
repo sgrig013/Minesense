@@ -9,6 +9,14 @@ extern HANDLE ghReceivedEvent[NUM_SENSORS];
 static bool SendToReceiver(int sensorIndex, string data);
 static bool WaitForCompletionEvent(int sensorIndex);
 
+//
+// This is implementation of specific Sensor classes: 
+// XRF, EMS and LIBS
+// Each class on start generates sample data using common data format.
+// On next step it will create connection to server and send notification that data is available.
+// Once sychronized it will send data over and wait for completion event to exit.
+//
+
 SensorXRF::SensorXRF(void)
 {
 }
@@ -17,6 +25,7 @@ SensorXRF::~SensorXRF(void)
 {
 }
 
+// Call of this method will activate sensor functionality
 bool SensorXRF::Start()
 {
 	string xrf_data = GenerateData();
@@ -24,6 +33,8 @@ bool SensorXRF::Start()
 	return SendData(xrf_data);
 }
 
+// This is generation of random sample data in common data format structures.
+// Returns string with comma separated data fields to be sent.  
 string SensorXRF::GenerateData()
 {
 	stringstream ss;
@@ -48,6 +59,8 @@ string SensorXRF::GenerateData()
 	return data;
 }
 
+// This method invokes synchronized data sending procedure
+// Waits for completion event from receiver to exit.  
 bool SensorXRF::SendData(string data)
 {
 	bool result = SendToReceiver(0, data);
@@ -180,6 +193,9 @@ bool SensorLIBS::SendData(string data)
 //
 // global methods to use by sensor classes
 //
+
+// This method creates connection over named pipe and notifies recever
+// Once synchronized it will send data 
 static bool SendToReceiver(int sensorIndex, string data)
 {
 	// Create a pipe to send data
@@ -247,6 +263,7 @@ static bool SendToReceiver(int sensorIndex, string data)
 	return true;
 }
 
+// Here it waits for the completion event from receiver. 
 static bool WaitForCompletionEvent(int sensorIndex)
 {
 	DWORD dwWaitResult;

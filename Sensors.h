@@ -1,6 +1,8 @@
 #pragma once
 #include "ISensor.h"
 
+// These are Sensor specific classes 
+// derived from base ISensor class 
 class SensorXRF : 
 	public ISensor
 {

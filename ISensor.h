@@ -1,6 +1,7 @@
 #pragma once
 #include "stdafx.h"
 
+// Sensor abstract base class to define interface and data structures
 class ISensor
 {
 public:

@@ -9,8 +9,8 @@ using namespace std;
 int _tmain(int argc, _TCHAR* argv[])
 {
 	// Create Receiver and start to wait for a sensor data
-	DataReceiver rcv;
-	if (!rcv.Start())
+	DataReceiver* pRcv = DataReceiver::GetInstance();
+	if (!pRcv->Start())
 	{
 		cout << "Failed to start data receiver!" << endl;
 		system("pause");
@@ -23,7 +23,7 @@ int _tmain(int argc, _TCHAR* argv[])
 		system("pause");
 		return 1;
 	}
-	if (rcv.NumerOfSensorsProcessed() != 1)
+	if (pRcv->NumerOfSensorsProcessed() != 1)
 	{
 		system("pause");
 		return 1;
@@ -35,7 +35,7 @@ int _tmain(int argc, _TCHAR* argv[])
 		system("pause");
 		return 1;
 	}
-	if (rcv.NumerOfSensorsProcessed() != 2)
+	if (pRcv->NumerOfSensorsProcessed() != 2)
 	{
 		system("pause");
 		return 1;
@@ -48,7 +48,7 @@ int _tmain(int argc, _TCHAR* argv[])
 		system("pause");
 		return 1;
 	}
-	if (rcv.NumerOfSensorsProcessed() != 2)
+	if (pRcv->NumerOfSensorsProcessed() != 2)
 	{
 		system("pause");
 		return 1;

@@ -1,12 +1,17 @@
 #pragma once
 #include "ISensor.h"
 
+// Only one instance of the receiver class could be created
+// which is supported by singleton creational pattern
 class DataReceiver
 {
-public:
+private:
+    static DataReceiver *pReceiver;
 	DataReceiver(void);
+public:
 	~DataReceiver(void);
 
+	static DataReceiver* GetInstance();
 	bool Start();
 	bool ReceiveData();
 	bool SaveData(int sensorIndex);
@@ -22,6 +27,7 @@ public:
 private:
 	// number of sensor's data processed
 	int m_nProcessed;
+	// string to hold data received from a sensor
 	std::string m_sRcvData;
 
 };
